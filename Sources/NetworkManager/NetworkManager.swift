@@ -9,26 +9,29 @@
 import Foundation
 import LogManager
 
-final class NetworkManager {
+public final class NetworkManager {
     
     // MARK: - Properties
     private let decoder: JSONDecoder
+    private let logger: LogManager
     
     // MARK: - Instance
-    static let shared = NetworkManager()
+    public static let shared = NetworkManager()
     
     private init() {
         self.decoder = JSONDecoder()
+        self.logger = LogManager.shared
     }
     
     // MARK: - Methods
-    func request(baseURL: URL,
+    @available(macOS 12.0, *)
+    public func request(baseURL: URL,
                  endpoint: String,
                  method: NetworkMethod,
                  parameters: NetworkParameters? = nil,
                  encoding: NetworkRequestEncoding = .url,
                  additionalHeaders: [String: String?]? = nil) async throws {
-        let request = buildRequest(
+        let request = try buildRequest(
             baseURL: baseURL,
             endpoint: endpoint,
             method: method,
@@ -37,34 +40,32 @@ final class NetworkManager {
             additionalHeaders: additionalHeaders
         )
         
-        LogManager.shared.logMessage(
-            type: .api,
-            message: "new request @ \(endpoint)"
-        )
+        logger.logMessage(source: .services, message: "new request @ \(endpoint)")
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIError.networking(error: .invalidResponse)
+                throw NetworkError.networking(error: .invalidResponse)
             }
             guard httpResponse.statusCode == 200 else {
                 let message = String(decoding: data, as: UTF8.self)
-                throw APIError.networking(error: .wrongStatusCode(statusCode: httpResponse.statusCode,
+                throw NetworkError.networking(error: .wrongStatusCode(statusCode: httpResponse.statusCode,
                                                                   message: message))
             }
         } catch {
-            throw APIError.generic(message: error.localizedDescription)
+            throw NetworkError.generic(message: error.localizedDescription)
         }
     }
     
-    func request<T: Codable>(baseURL: URL,
+    @available(macOS 12.0, *)
+    public func request<T: Codable>(baseURL: URL,
                              endpoint: String,
                              method: NetworkMethod,
                              parameters: NetworkParameters? = nil,
                              encoding: NetworkRequestEncoding = .url,
                              additionalHeaders: [String: String?]? = nil) async throws -> T {
-        let request = buildRequest(
+        let request = try buildRequest(
             baseURL: baseURL,
             endpoint: endpoint,
             method: method,
@@ -73,26 +74,23 @@ final class NetworkManager {
             additionalHeaders: additionalHeaders
         )
         
-        DevLogManager.shared.logMessage(
-            type: .api,
-            message: "new request @ \(endpoint)"
-        )
+        logger.logMessage(source: .services, message: "new request @ \(endpoint)")
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIError.networking(error: .invalidResponse)
+                throw NetworkError.networking(error: .invalidResponse)
             }
             guard httpResponse.statusCode == 200 else {
                 let message = String(decoding: data, as: UTF8.self)
-                throw APIError.networking(error: .wrongStatusCode(statusCode: httpResponse.statusCode,
+                throw NetworkError.networking(error: .wrongStatusCode(statusCode: httpResponse.statusCode,
                                                                   message: message))
             }
             
             return try decoder.decode(T.self, from: data)
         } catch {
-            throw APIError.generic(message: error.localizedDescription)
+            throw NetworkError.generic(message: error.localizedDescription)
         }
     }
 }
@@ -105,7 +103,7 @@ private extension NetworkManager {
                       method: NetworkMethod,
                       parameters: NetworkParameters?,
                       encoding: NetworkRequestEncoding,
-                      additionalHeaders: [String: String?]?) -> URLRequest {
+                      additionalHeaders: [String: String?]?) throws -> URLRequest {
         var endpointPath = baseURL.appendingPathComponent(endpoint)
         var body: String?
         
@@ -116,7 +114,10 @@ private extension NetworkManager {
                     let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
                     body = String(data: jsonData, encoding: String.Encoding.ascii)
                 } catch {
-                    #warning("TODO: handle error")
+                    logger.logMessage(source: .services,
+                                      message: "Error while encoding parameters for call to: \(endpoint)",
+                                      type: .error)
+                    throw NetworkError.encoding
                 }
             case .url:
                 parameters.forEach { key, value in

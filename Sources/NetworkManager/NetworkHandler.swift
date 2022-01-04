@@ -8,10 +8,10 @@
 
 import Foundation
 
-protocol NetworkHandler: AnyObject {
+public protocol NetworkHandler: AnyObject {
     var manager: NetworkManager { get }
 }
 
-extension NetworkHandler {
+public extension NetworkHandler {
     var manager: NetworkManager { .shared }
 }

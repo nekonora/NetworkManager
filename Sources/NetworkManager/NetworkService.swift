@@ -8,15 +8,15 @@
 
 import Foundation
 
-typealias NetworkParameters = [String: Any?]
+public typealias NetworkParameters = [String: Any?]
 
-enum NetworkMethod: String {
+public enum NetworkMethod: String {
     case get = "GET"
     case put = "PUT"
     case post = "POST"
     case patch = "PATCH"
 }
 
-enum NetworkRequestEncoding {
+public enum NetworkRequestEncoding {
     case json, url
 }
