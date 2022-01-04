@@ -3,7 +3,7 @@
     "pins": [
       {
         "package": "LogManager",
-        "repositoryURL": "https://github.com/nekonora/LogManager.git",
+        "repositoryURL": "git@github.com:nekonora/LogManager.git",
         "state": {
           "branch": null,
           "revision": "7023bc3b35e2887fd6cbf63417bef87e6c1b49a2",
