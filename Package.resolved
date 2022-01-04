@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "LogManager",
+        "repositoryURL": "https://github.com/nekonora/LogManager.git",
+        "state": {
+          "branch": null,
+          "revision": "7904fed4fab2993d570993653563fe9fb301de19",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
