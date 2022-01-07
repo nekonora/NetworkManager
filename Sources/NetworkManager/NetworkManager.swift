@@ -25,6 +25,7 @@ public final class NetworkManager {
     
     // MARK: - Methods
     @available(macOS 12.0, *)
+    @available(macCatalyst 15.0, *)
     public func request(baseURL: URL,
                  endpoint: String,
                  method: NetworkMethod,
@@ -59,6 +60,7 @@ public final class NetworkManager {
     }
     
     @available(macOS 12.0, *)
+    @available(macCatalyst 15.0, *)
     public func request<T: Codable>(baseURL: URL,
                              endpoint: String,
                              method: NetworkMethod,
